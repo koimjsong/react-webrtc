@@ -3,6 +3,9 @@ Module not found: Error: Can't resolve 'web-vitals' 에러 뜸. web-vitals 패�
 ```
 npm install web-vitals
 ```
+```
+npm install -save react-scripts
+```
 
 ### B. js 파일 public 경로로 옮기기
 
