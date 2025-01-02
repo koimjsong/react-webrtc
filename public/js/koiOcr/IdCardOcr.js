@@ -1,4 +1,4 @@
-import  IdCardModule from './koiOcr/idcard/Koi_IdCard.js'
+import  IdCardModule from './idcard/Koi_IdCard.js'
 class IdCardOCRProcessor {
   constructor() {
     this.Module = null;

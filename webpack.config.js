@@ -14,6 +14,13 @@ module.exports = {
   //mode: "production", 
   resolve: {
     extensions: [".js"], 
+    fallback: {
+      path: require.resolve("path-browserify"),
+      fs: false, // 브라우저 환경에서는 fs 사용 불가능
+    },
+    // alias: {
+    //   IdCardOCRProcessor: path.resolve(__dirname, "public/js/koiOcr/idcard/Koi_IdCard.js"),
+    // },
   },
   module: {
     rules: [

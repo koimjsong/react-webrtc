@@ -56,3 +56,7 @@ Forwarding                    https://e1b5-121-166-140-188.ngrok-free.app -> htt
 
 # react-webrtc
 # react-webrtc
+
+
+path 모듈은 브라우저에서 사용할 수 없으므로, 브라우저 환경을 위한 대체 모듈인 path-browserify를 설치
+```npm install path-browserify```

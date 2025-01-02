@@ -1,4 +1,5 @@
 import "./css/index.css";
+import "./css/koi.css";
 import Camera from "./components/Camera";
 
 const App = () => {

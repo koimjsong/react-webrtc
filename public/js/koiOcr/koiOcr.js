@@ -30,6 +30,7 @@ class KoiOcr extends EventTarget {
     this._webCamera = new WebCamera();
     this._initEventHandler();
     this.initialize();
+    
   }
 
   async initialize() {
