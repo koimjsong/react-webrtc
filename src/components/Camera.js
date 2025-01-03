@@ -2,17 +2,14 @@ import React, { useEffect, useRef, useState } from "react";
 
 const Camera = () => {
   const isInitialized = useRef(false);
-  const containerRef = useRef(null);
   const koiOcrInstanceRef = useRef(null);
-
   const [capturedImage, setCapturedImage] = useState(null);
-
-  //const { KOI_OCR_EVENT } = window.koiOcr;
+  const [resultText, setResultText] = useState("");
 
   useEffect(() => {
     const initializeCamera = async () => {
       try {
-        if (isInitialized.current) return; 
+        if (isInitialized.current) return;
         isInitialized.current = true;
 
         console.log("Initializing camera...");
@@ -20,113 +17,92 @@ const Camera = () => {
         const koiOcrInstance = new KoiOcr();
         koiOcrInstanceRef.current = koiOcrInstance;
 
-        koiOcrInstance.addEventListener("result", handleOcrResult);
+        //koiOcrInstance.addEventListener(window.koiOcr.KOI_OCR_EVENT.RESULT, ocrResultHandler);
 
+        koiOcrInstance.addEventListener(window.koiOcr.KOI_OCR_EVENT.RESULT, (event) => {
+          console.log("RESULT event:", event);
+          processImageData(event.detail.imageData);
+        });
+
+        
         await koiOcrInstance.init({
           useWebCamera: true,
           cameraOptions: {
             window: window,
             containerId: "#webcamera_container",
             useRtc: true,
+            rtcMaxRetryCount: 2,
             useCapOcr: 1,
-            useDetect: false,
+            useDetect: true,
             detectRetry: true,
           },
           useWasmOcr: true,
           ocrType: 1,
           ocrWorkerJs: "js/koiOcr/ocrWorkerDemo.js",
-          useDemo: true,
+          useDemo: false,
         });
 
         koiOcrInstance.runCamera();
-
         console.log("Camera initialized.");
       } catch (error) {
         console.error("Error initializing camera:", error);
       }
     };
 
-    const handleOcrResult = (event) => {
-      console.log("OCR result received:", event);
-      if (!event.detail || !event.detail.ocrResult) {
-        console.log("Failed to capture result. Please try again.");
-        return;
-      }
-
-      const { ocrResult, imageData } = event.detail;
-      if (ocrResult.resultJSON.resultCode === "0000") {
-        console.log("OCR successful!");
-
-        if (imageData) {
-          const canvas = document.createElement("canvas");
-          canvas.width = imageData.width;
-          canvas.height = imageData.height;
-
-          const context = canvas.getContext("2d");
-          context.putImageData(imageData, 0, 0);
-
-          const base64Data = canvas.toDataURL("image/jpeg");
-          setCapturedImage(base64Data);
-        }
-      } else {
-        console.log("OCR failed with code:", ocrResult.resultJSON.resultCode);
-      }
-    };
-
-    // const handleImageCaptured = (event) => {
-    //   console.log("Image captured event triggered:", event);
-
-    //   if (event.detail && event.detail.imageData) {
-    //     const canvas = document.createElement("canvas");
-    //     canvas.width = event.detail.imageWidth;
-    //     canvas.height = event.detail.imageHeight;
-
-    //     const context = canvas.getContext("2d");
-    //     context.putImageData(event.detail.imageData, 0, 0);
-
-    //     const base64Data = canvas.toDataURL("image/jpeg");
-    //     setCapturedImage(base64Data);
-    //   } else {
-    //     console.error("No image data in event:", event.detail);
-    //   }
-    // };
-
     initializeCamera();
 
     return () => {
       const koiOcrInstance = koiOcrInstanceRef.current;
       if (koiOcrInstance) {
-        koiOcrInstance.removeEventListener("result", handleOcrResult);
+        koiOcrInstance.removeEventListener(window.koiOcr.KOI_OCR_EVENT.RESULT, processImageData);
       }
     };
   }, []);
 
-  // const handleCaptureClick = async () => {
-  //   try {
-  //     const koiOcrInstance = koiOcrInstanceRef.current;
-  //     if (!koiOcrInstance) {
-  //       console.error("KoiOcr instance not initialized.");
-  //       return;
-  //     }
+  const processImageData = (imageData) => {
+    if (!imageData) {
+      return;
+    }
 
-  //     console.log("Triggering capture...");
-  //     //koiOcrInstance._webCamera.start(); // Trigger the start process
-  //     koiOcrInstance._webCamera.processCapture();
-  //   } catch (error) {
-  //     console.error("Error during capture:", error);
-  //   }
-  // };
+    const canvas = document.createElement("canvas");
+    canvas.width = imageData.width;
+    canvas.height = imageData.height;
+
+    const context = canvas.getContext("2d");
+    const clampedArray = new Uint8ClampedArray(imageData.data);
+
+    const processedImageData = new ImageData(clampedArray, imageData.width, imageData.height);
+    context.putImageData(processedImageData, 0, 0);
+
+    const base64Data = canvas.toDataURL("image/jpeg");
+    setCapturedImage(base64Data);
+  };
+
+  const handleCaptureButton = () => {
+    const koiOcrInstance = koiOcrInstanceRef.current;
+    if (koiOcrInstance) {
+      console.log("먼저 카메라를 안전하게 중지");
+      koiOcrInstance.runCamera();
+      console.log("카메라 다시 시작");
+      koiOcrInstance.runCamera();
+    } else {
+      console.error("KoiOcr instance not initialized.");
+    }
+  };
 
   return (
     <div>
-      <div id="webcamera_container" ref={containerRef} className="camera-container">
+      <div id="webcamera_container" className="camera-container">
         <p></p>
       </div>
-      {/* <button onClick={handleCaptureClick}>Capture Image</button> */}
+      <button onClick={handleCaptureButton}>Run Camera</button>
+      {resultText && <p className="result">{resultText}</p>}
       {capturedImage && (
         <div>
-          <h2>Captured Image:</h2>
-          <img src={capturedImage} alt="Captured" />
+          {/* <img src={capturedImage} alt="이미지" /> */}
+          <a href={capturedImage} download="captured_image.jpg">
+            Download Image
+          </a>
         </div>
       )}
     </div>

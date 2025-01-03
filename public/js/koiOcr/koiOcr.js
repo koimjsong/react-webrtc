@@ -2,6 +2,10 @@ import { KOI_OCR_EVENT, OCR_TYPE, rtcType } from "../constants.js";
 import * as koiUtils from "./koiutils.js";
 import WebCamera from "./webCamera.js";
 
+import { DocsAffine } from "./affineProcessor.js";
+import { IdCardOCRProcessor } from "./IdCardOcr.js";
+import { Barcode } from "./barcodeProcessor.js";
+
 class KoiOcr extends EventTarget {
   _webCamera;
   _ocrWorker;
@@ -862,7 +866,7 @@ class KoiOcr extends EventTarget {
     let loadModelResult = 1;
     if (this._options.useWasmOcr) {
       if (ocrType == 2) {
-        const { DocsAffine } = await import("./affineProcessor.js");
+        //const { DocsAffine } = await import("./affineProcessor.js");
         this._DocsAffine = new DocsAffine();
         loadModelResult = await this._DocsAffine.loadModel({
           wasmDirectory: "./js/affine/",
@@ -893,7 +897,7 @@ class KoiOcr extends EventTarget {
           throw new Error(JSON.stringify(error));
         }
       } else if (ocrType == 1 && !this._useDetect && !this._IdCardOCRProcessor) {
-        const { IdCardOCRProcessor } = await import("./IdCardOcr.js");
+        //const { IdCardOCRProcessor } = await import("./IdCardOcr.js");
         this._IdCardOCRProcessor = new IdCardOCRProcessor();
         loadModelResult = await this._IdCardOCRProcessor.loadModel({
           wasmDirectory: "./js/idcard/",
@@ -908,7 +912,7 @@ class KoiOcr extends EventTarget {
           this._IdCardOCRProcessor = null;
         }
       } else if (ocrType == 4 && !this._Barcode) {
-        const { Barcode } = await import("./barcodeProcessor.js");
+        //const { Barcode } = await import("./barcodeProcessor.js");
         this._Barcode = new Barcode();
         loadModelResult = await this._Barcode.initialize({
           wasmDirectory: "./js/barcode/",
@@ -921,7 +925,7 @@ class KoiOcr extends EventTarget {
           this._Barcode = null;
         }
       } else if ((ocrType == 7 || ocrType == 16) && !this._DocsAffine) {
-        const { DocsAffine } = await import("./affineProcessor.js");
+        //const { DocsAffine } = await import("./affineProcessor.js");
         this._DocsAffine = new DocsAffine();
         loadModelResult = await this._DocsAffine.loadModel({
           wasmDirectory: "./js/affine/",

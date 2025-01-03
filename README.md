@@ -54,9 +54,10 @@ Forwarding                    https://e1b5-121-166-140-188.ngrok-free.app -> htt
 
 다음과 같이 뜨게 되는데  https://e1b5-121-166-140-188.ngrok-free.app 들어가면 http://localhost:3000 으로 접속한 것 처럼 할 수 있음.
 
-# react-webrtc
-# react-webrtc
-
 
 path 모듈은 브라우저에서 사용할 수 없으므로, 브라우저 환경을 위한 대체 모듈인 path-browserify를 설치
 ```npm install path-browserify```
+
+## koiOcr.js 수정
+웹팩 번들링하기 위해서 동적 import() 대신 정적 import로 변경
+- 동적 import() 는 별도의 파일을 생성하기도 하고, koiOcr.bundle.js 만 불러와서 사용하기 때문에 동적 import가 필요없음. 
