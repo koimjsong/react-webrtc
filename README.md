@@ -54,6 +54,23 @@ Forwarding                    https://e1b5-121-166-140-188.ngrok-free.app -> htt
 
 다음과 같이 뜨게 되는데  https://e1b5-121-166-140-188.ngrok-free.app 들어가면 http://localhost:3000 으로 접속한 것 처럼 할 수 있음.
 
+## Chrome inspect 
+
+1. Window Powershell 관리자 권한으로 실행
+
+```
+npm install remotedebug-ios-webkit-adapter -g
+```
+
+2. debug adapter port 개방
+```
+remotedebug_ios_webkit_adapter --port=9000
+```
+
+
+```
+chrome://inspect/#devices
+```
 
 path 모듈은 브라우저에서 사용할 수 없으므로, 브라우저 환경을 위한 대체 모듈인 path-browserify를 설치
 ```npm install path-browserify```
