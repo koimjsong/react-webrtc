@@ -8,12 +8,16 @@ const Camera = () => {
 
   useEffect(() => {
 
-    initializeCamera();
+    if (!isInitialized.current) {
+       initializeCamera();
+    }
 
     return () => {
       const koiOcrInstance = koiOcrInstanceRef.current;
       if (koiOcrInstance) {
         koiOcrInstance.removeEventListener(window.koiOcr.KOI_OCR_EVENT.RESULT, processImageData);
+        //console.log("카메라를 안전하게 중지");
+        //koiOcrInstance.stopCamera();
       }
     };
   }, []);
@@ -28,14 +32,14 @@ const Camera = () => {
       const koiOcrInstance = new KoiOcr();
       koiOcrInstanceRef.current = koiOcrInstance;
 
-      await koiOcrInstance.init({
+      const options = {
         useWebCamera: true,
         cameraOptions: {
           window: window,
           containerId: "#webcamera_container",
           useRtc: true,
-          rtcMaxRetryCount: 2,
-          useCapOcr: 1,
+          //rtcMaxRetryCount: 2,
+          useCapOcr: 2,
           useDetect: true,
           detectRetry: true,
         },
@@ -43,7 +47,10 @@ const Camera = () => {
         ocrType: 1,
         ocrWorkerJs: "js/koiOcr/ocrWorkerDemo.js",
         useDemo: false,
-      });
+      }
+      await koiOcrInstance.init(options);
+      koiOcrInstance._webCamera._resetUI();
+      //await koiOcrInstance.changeOcrType(options.ocrType);
 
       //koiOcrInstance.runCamera();
       console.log("Camera initialized.");
@@ -56,7 +63,6 @@ const Camera = () => {
     if (!imageData) {
       return;
     }
-
     const canvas = document.createElement("canvas");
     canvas.width = imageData.width;
     canvas.height = imageData.height;
@@ -70,23 +76,34 @@ const Camera = () => {
     const base64Data = canvas.toDataURL("image/jpeg");
     setCapturedImage(base64Data);
   };
+  
 
-  const handleCaptureButton = () => {
+  const captureCropImage = async () => {
     const koiOcrInstance = koiOcrInstanceRef.current;
-    if (koiOcrInstance) {
-      console.log("먼저 카메라를 안전하게 중지");
-      koiOcrInstance.stopCamera();
-      console.log("카메라 다시 시작");
-      koiOcrInstance.runCamera();
+    try{
+      //console.log("먼저 카메라를 안전하게 중지");
+      //await koiOcrInstance.stopCamera();
+      console.log("크롭 이미지 캡처를 위한 카메라 실행");
+      await koiOcrInstance.runCamera();
 
-      koiOcrInstance.addEventListener(window.koiOcr.KOI_OCR_EVENT.RESULT, (event) => {
-        console.log("Processing captured image...");
+      // koiOcrInstance.addEventListener(window.koiOcr.KOI_OCR_EVENT.RESULT, (event) => {
+      //   console.log("Processing captured image...");
+      //   if (event.detail && event.detail.imageData) {
+      //     processImageData(event.detail.imageData);
+      //   }
+      // });
+      const handleResult = (event) => {
+        console.log("크롭 이미지 캡처중");
         if (event.detail && event.detail.imageData) {
           processImageData(event.detail.imageData);
         }
-      });
-    } else {
-      console.error("KoiOcr instance not initialized.");
+      };
+
+      //koiOcrInstance.removeEventListener(window.koiOcr.KOI_OCR_EVENT.RESULT, handleResult);
+      koiOcrInstance.addEventListener(window.koiOcr.KOI_OCR_EVENT.RESULT, handleResult);
+
+    } catch(error) {
+      console.error("크롭이미지 캡처실패:", error);
     }
   };
 
@@ -94,7 +111,7 @@ const Camera = () => {
     const koiOcrInstance = koiOcrInstanceRef.current;
 
     try {
-      await koiOcrInstance._webCamera.processCapture();
+      //await koiOcrInstance._webCamera.processCapture();
 
       const videoElement = koiOcrInstance._webCamera._videoRef;
       const canvasElement = koiOcrInstance._webCamera._canvasRef;
@@ -107,6 +124,7 @@ const Camera = () => {
 
       const originalImageData = canvasElement.toDataURL("image/jpeg");
       setCapturedImage(originalImageData);
+      console.log("원본이미지 다운로드 준비완료");
 
     } catch (error) {
       console.error("원본이미지 캡처실패:", error);
@@ -118,12 +136,12 @@ const Camera = () => {
       <div id="webcamera_container" className="camera-container">
         <p></p>
       </div>
-      <button onClick={handleCaptureButton}>Run Camera</button>
+      <button onClick={captureCropImage}>Capture Crop Image</button>
       <button onClick={captureOriginalImage}>Capture Original Image</button>
       {resultText && <p className="result">{resultText}</p>}
       {capturedImage && (
-        <div>
-          {/* <img src={capturedImage} alt="이미지" /> */}
+        <div className="image-container">
+          <img src={capturedImage} className="image" alt="이미지" />
           <a href={capturedImage} download="captured_image.jpg">
             다운로드
           </a>
